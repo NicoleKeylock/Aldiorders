@@ -45,7 +45,6 @@
     min-height: 100vh;
   }
 
-  /* ── Header ── */
   header {
     background: linear-gradient(135deg, #FCE4EF 0%, #F8D0E4 50%, #F0C8D8 100%);
     border-bottom: 1px solid var(--border);
@@ -80,7 +79,6 @@
     user-select: none;
   }
 
-  /* ── Buttons ── */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -107,12 +105,65 @@
   }
   .btn-accent:hover { background: #A8304E; border-color: #A8304E; }
 
-  .btn-sm { font-size: 10px; padding: 4px 10px; }
+  .btn-sm { font-size: 10px; padding: 3px 9px; border-radius: 20px; }
 
-  /* ── Main ── */
+  /* toggle pill buttons */
+  .toggle-pill {
+    display: inline-flex;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .toggle-pill button {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .toggle-pill button:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+
+  .toggle-pill button.active-confirmed {
+    background: var(--confirmed-bg);
+    color: var(--confirmed);
+    font-weight: 500;
+  }
+
+  .toggle-pill button.active-planned {
+    background: var(--planned-bg);
+    color: var(--planned);
+    font-weight: 500;
+  }
+
+  .toggle-pill button.active-yes {
+    background: var(--confirmed-bg);
+    color: var(--confirmed);
+    font-weight: 500;
+  }
+
+  .toggle-pill button.active-tbc {
+    background: var(--tbc-bg);
+    color: var(--tbc-col);
+    font-weight: 500;
+  }
+
+  .toggle-pill button.active-unset {
+    background: var(--bg2);
+    color: var(--muted);
+    font-weight: 500;
+  }
+
   .main { padding: 1.75rem 2.5rem 3rem; }
 
-  /* ── KPIs ── */
   .kpi-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -153,7 +204,6 @@
   .kpi.k-unplaced .k-value { color: var(--unplaced); }
   .kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-  /* ── Toolbar ── */
   .toolbar {
     display: flex;
     justify-content: space-between;
@@ -193,7 +243,6 @@
 
   .filters input[type=text] { width: 170px; }
 
-  /* ── Legend ── */
   .legend {
     display: flex;
     gap: 14px;
@@ -205,7 +254,6 @@
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  /* ── Table ── */
   .table-wrap {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -235,7 +283,7 @@
   }
 
   td {
-    padding: 8px 12px;
+    padding: 7px 12px;
     border-bottom: 1px solid #FCF0F5;
     color: var(--text);
     white-space: nowrap;
@@ -247,7 +295,7 @@
   tr.row-unplaced td { background: #FDFAFF; }
   tr.row-unplaced:hover td { background: #F8F2FF; }
   tr.row-archived td { background: var(--archived-bg); opacity: 0.7; }
-  tr.row-archived:hover td { background: #EEEEE8; opacity: 1; }
+  tr.row-archived:hover td { opacity: 1; }
 
   .td-ref   { font-weight: 500; }
   .td-muted { color: var(--muted); font-size: 12px; }
@@ -262,18 +310,11 @@
     text-transform: uppercase;
   }
 
-  .b-confirmed { background: var(--confirmed-bg); color: var(--confirmed); }
-  .b-planned   { background: var(--planned-bg);   color: var(--planned); }
-  .b-yes       { background: var(--confirmed-bg); color: var(--confirmed); }
-  .b-tbc       { background: var(--tbc-bg);       color: var(--tbc-col); }
-  .b-unplaced  { background: var(--unplaced-bg);  color: var(--unplaced); }
   .b-joven     { background: var(--joven-bg);     color: var(--joven-col); }
   .b-blanco    { background: var(--blanco-bg);    color: var(--blanco-col); }
   .b-archived  { background: #E8E8E0; color: #666; }
+  .b-unplaced  { background: var(--unplaced-bg);  color: var(--unplaced); }
 
-  .action-btns { display: flex; gap: 6px; }
-
-  /* ── Archived banner ── */
   .archive-section-label {
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -284,7 +325,6 @@
     border-bottom: 1px solid var(--border);
   }
 
-  /* ── Bottom panels ── */
   .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 
   .panel {
@@ -320,7 +360,7 @@
   .up-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .up-none   { font-size: 12px; color: var(--muted); }
 
-  /* ── Modal ── */
+  /* Modal */
   .modal-bg {
     display: none;
     position: fixed;
@@ -331,7 +371,6 @@
     justify-content: center;
     padding: 1rem;
   }
-
   .modal-bg.open { display: flex; }
 
   .modal {
@@ -356,9 +395,7 @@
 
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-full  { grid-column: 1 / -1; }
-
   .form-group { display: flex; flex-direction: column; gap: 4px; }
-
   .form-group label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
   .form-group input,
@@ -386,7 +423,6 @@
 
   .form-hint { font-size: 11px; color: var(--muted); margin-top: 1rem; padding: 8px 12px; background: var(--bg2); border-radius: 6px; line-height: 1.6; }
 
-  /* ── Toast ── */
   .toast {
     position: fixed;
     bottom: 1.5rem;
@@ -402,10 +438,8 @@
     transition: all 0.25s;
     pointer-events: none;
   }
-
   .toast.show { opacity: 1; transform: translateY(0); }
 
-  /* ── Responsive ── */
   @media (max-width: 900px) {
     .kpi-grid { grid-template-columns: repeat(3, 1fr); }
     .bottom-grid { grid-template-columns: 1fr; }
@@ -458,12 +492,10 @@
       </select>
       <input type="text" id="search" placeholder="Search ref, 2XL…" oninput="render()" />
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
-        <input type="checkbox" id="showArchived" onchange="render()" style="accent-color:var(--accent)">
-        Show archived
-      </label>
-    </div>
+    <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" id="showArchived" onchange="render()" style="accent-color:var(--accent)">
+      Show archived
+    </label>
   </div>
 
   <div class="table-wrap">
@@ -534,7 +566,7 @@
       <div class="form-group">
         <label>Collection booked?</label>
         <select id="f-booked">
-          <option value="">— not applicable —</option>
+          <option value="">— not set —</option>
           <option value="TBC">TBC</option>
           <option value="Yes">Yes</option>
         </select>
@@ -558,18 +590,14 @@
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── State ──────────────────────────────────────────────────
-// Start with a copy of ORDERS from orders.js so we can add runtime entries
 let state = ORDERS.map((o, i) => ({ ...o, _id: i }));
 let nextId = state.length;
 
 const today = new Date("2026-05-14");
 
-// ── Helpers ────────────────────────────────────────────────
 function fmt(d) {
   if (!d) return "—";
   const [y, m, dd] = d.split("-");
@@ -589,14 +617,13 @@ function showToast(msg) {
 
 // ── Render ─────────────────────────────────────────────────
 function render() {
-  const fs  = document.getElementById("filterStatus").value;
-  const fp  = document.getElementById("filterProduct").value;
-  const fb  = document.getElementById("filterBooked").value;
-  const q   = document.getElementById("search").value.toLowerCase();
+  const fs       = document.getElementById("filterStatus").value;
+  const fp       = document.getElementById("filterProduct").value;
+  const fb       = document.getElementById("filterBooked").value;
+  const q        = document.getElementById("search").value.toLowerCase();
   const showArch = document.getElementById("showArchived").checked;
 
-  const active   = [];
-  const archived = [];
+  const active = [], archived = [];
 
   state.forEach(o => {
     if (fs && o.status !== fs) return;
@@ -616,7 +643,8 @@ function render() {
     archived.forEach(o => rows.push(buildRow(o, true)));
   }
 
-  document.getElementById("tbody").innerHTML = rows.join("") || `<tr><td colspan="11" style="padding:20px 12px;color:var(--muted);font-style:italic">No orders match the current filters.</td></tr>`;
+  document.getElementById("tbody").innerHTML = rows.join("") ||
+    `<tr><td colspan="11" style="padding:20px 12px;color:var(--muted);font-style:italic">No orders match the current filters.</td></tr>`;
 
   updateKPIs(active);
   buildTimeline();
@@ -625,18 +653,36 @@ function render() {
 
 function buildRow(o, isArchived) {
   const unplaced = !o.placed && !isArchived;
+
   const productBadge = o.type === "Joven"
     ? `<span class="badge b-joven">Joven</span>`
     : `<span class="badge b-blanco">Blanco</span>`;
 
-  let bookedCell = "—";
-  if (unplaced)              bookedCell = `<span class="badge b-unplaced">Not sent</span>`;
-  else if (o.booked === "Yes") bookedCell = `<span class="badge b-yes">Yes</span>`;
-  else if (o.booked === "TBC") bookedCell = `<span class="badge b-tbc">TBC</span>`;
+  // Status toggle — Planned | Confirmed
+  const statusToggle = isArchived
+    ? `<span class="badge" style="background:${o.status==='CONFIRMED'?'var(--confirmed-bg)':'var(--planned-bg)'};color:${o.status==='CONFIRMED'?'var(--confirmed)':'var(--planned)'};">${o.status}</span>`
+    : `<div class="toggle-pill">
+        <button class="${o.status === 'PLANNED' ? 'active-planned' : ''}" onclick="setStatus(${o._id},'PLANNED')">Planned</button>
+        <button class="${o.status === 'CONFIRMED' ? 'active-confirmed' : ''}" onclick="setStatus(${o._id},'CONFIRMED')">Confirmed</button>
+       </div>`;
+
+  // Booked toggle — TBC | Yes  (hidden if not sent to winery)
+  let bookedToggle;
+  if (unplaced) {
+    bookedToggle = `<span class="badge b-unplaced">Not sent</span>`;
+  } else if (isArchived) {
+    const label = o.booked === "Yes" ? "Yes" : o.booked === "TBC" ? "TBC" : "—";
+    bookedToggle = `<span style="font-size:11px;color:var(--muted)">${label}</span>`;
+  } else {
+    bookedToggle = `<div class="toggle-pill">
+      <button class="${o.booked === 'TBC' ? 'active-tbc' : ''}" onclick="setBooked(${o._id},'TBC')">TBC</button>
+      <button class="${o.booked === 'Yes' ? 'active-yes' : ''}" onclick="setBooked(${o._id},'Yes')">Yes</button>
+    </div>`;
+  }
 
   const archiveBtn = isArchived
-    ? `<button class="btn btn-sm" onclick="unarchive(${o._id})" title="Restore">&#8635; Restore</button>`
-    : `<button class="btn btn-sm" onclick="archive(${o._id})" title="Archive">Archive</button>`;
+    ? `<button class="btn btn-sm" onclick="unarchive(${o._id})">&#8635; Restore</button>`
+    : `<button class="btn btn-sm" onclick="archive(${o._id})">Archive</button>`;
 
   return `<tr class="${isArchived ? 'row-archived' : unplaced ? 'row-unplaced' : ''}">
     <td class="td-ref">${o.ref}</td>
@@ -647,12 +693,35 @@ function buildRow(o, isArchived) {
     <td class="${!o.placed ? 'td-muted' : ''}">${o.placed ? fmt(o.placed) : '<em style="font-size:11px;color:var(--muted)">not sent</em>'}</td>
     <td>${fmt(o.collection)}</td>
     <td>${fmt(o.delivery)}</td>
-    <td><span class="badge b-${o.status.toLowerCase()}">${o.status}${isArchived ? ' <span class="badge b-archived" style="margin-left:4px">archived</span>' : ''}</span></td>
-    <td>${bookedCell}</td>
-    <td><div class="action-btns">${archiveBtn}</div></td>
+    <td>${statusToggle}</td>
+    <td>${bookedToggle}</td>
+    <td>${archiveBtn}</td>
   </tr>`;
 }
 
+// ── Field toggles ──────────────────────────────────────────
+function setStatus(id, value) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.status = value; render(); showToast(`${o.ref} → ${value}`); }
+}
+
+function setBooked(id, value) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.booked = value; render(); showToast(`${o.ref} collection booked: ${value}`); }
+}
+
+// ── Archive / Restore ─────────────────────────────────────
+function archive(id) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.archived = true; render(); showToast(`${o.ref} archived`); }
+}
+
+function unarchive(id) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.archived = false; render(); showToast(`${o.ref} restored`); }
+}
+
+// ── KPIs ───────────────────────────────────────────────────
 function updateKPIs(active) {
   const total    = active.length;
   const conf     = active.filter(o => o.status === "CONFIRMED").length;
@@ -688,6 +757,7 @@ function updateKPIs(active) {
     </div>`;
 }
 
+// ── Timeline ───────────────────────────────────────────────
 function buildTimeline() {
   const months = [
     {key:"2026-05", label:"May 2026"},
@@ -714,6 +784,7 @@ function buildTimeline() {
     </div>`).join("");
 }
 
+// ── Upcoming ───────────────────────────────────────────────
 function buildUpcoming() {
   const cutoff = new Date(today);
   cutoff.setDate(cutoff.getDate() + 30);
@@ -740,17 +811,6 @@ function buildUpcoming() {
         </div>
       </div>`;
     }).join("");
-}
-
-// ── Archive / Restore ─────────────────────────────────────
-function archive(id) {
-  const o = state.find(o => o._id === id);
-  if (o) { o.archived = true; render(); showToast(`${o.ref} archived`); }
-}
-
-function unarchive(id) {
-  const o = state.find(o => o._id === id);
-  if (o) { o.archived = false; render(); showToast(`${o.ref} restored`); }
 }
 
 // ── Add Order Modal ───────────────────────────────────────
@@ -787,27 +847,19 @@ function addOrder() {
     return;
   }
 
-  const newOrder = {
+  state.push({
     _id: nextId++,
-    ref,
-    type,
+    ref, type,
     product: productName(type),
-    xl,
-    placed,
-    collection,
-    delivery,
-    status,
-    booked,
+    xl, placed, collection, delivery, status, booked,
     archived: false,
-  };
+  });
 
-  state.push(newOrder);
   closeModal();
   render();
   showToast(`${ref} added ✓`);
 }
 
-// Close modal on background click
 document.getElementById("addModal").addEventListener("click", function(e) {
   if (e.target === this) closeModal();
 });
@@ -816,32 +868,22 @@ document.getElementById("addModal").addEventListener("click", function(e) {
 function exportCSV() {
   const headers = ["GAW Ref","Type","Product","2XL Ref","Cases","Pallets","Order Placed","Collection","Delivery","Status","Collection Booked","Archived"];
   const rows = state.map(o => [
-    o.ref,
-    o.type,
-    o.product,
-    o.xl,
-    3300,
-    33,
-    o.placed,
-    o.collection,
-    o.delivery,
-    o.status,
-    o.booked,
+    o.ref, o.type, o.product, o.xl, 3300, 33,
+    o.placed, o.collection, o.delivery, o.status, o.booked,
     o.archived ? "Yes" : "No"
   ].map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","));
 
-  const csv = [headers.join(","), ...rows].join("\n");
+  const csv  = [headers.join(","), ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a");
-  a.href     = url;
+  a.href = url;
   a.download = `GAW_Aldi_Orders_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
   showToast("CSV exported ✓");
 }
 
-// ── Init ──────────────────────────────────────────────────
 render();
 </script>
 </body>
