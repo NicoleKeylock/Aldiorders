@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAW — Aldi Order Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+<script src="orders.js"></script>
+<style>
+  :root {
+    --bg:        #FDF0F5;
+    --bg2:       #FAE4EE;
+    --surface:   #FFFFFF;
+    --surface2:  #FDF0F5;
+    --border:    #F0C8D8;
+    --text:      #2D1520;
+    --muted:     #9E6B7E;
+    --soft:      #C9889E;
+    --confirmed:    #1B6B44;
+    --confirmed-bg: #DFF5EC;
+    --planned:      #7A4F00;
+    --planned-bg:   #FFF3D6;
+    --tbc-col:      #8B2252;
+    --tbc-bg:       #FCE4EF;
+    --accent:       #C0385A;
+    --unplaced:     #6B38A0;
+    --unplaced-bg:  #F2EAFB;
+    --archived-bg:  #F5F5F0;
+    --joven-col:    #185A72;
+    --joven-bg:     #DFF0F8;
+    --blanco-col:   #3A6818;
+    --blanco-bg:    #E8F5DC;
+    --font-display: 'Playfair Display', serif;
+    --font-mono:    'DM Mono', monospace;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #FCE4EF 0%, #F8D0E4 50%, #F0C8D8 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 2rem;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  header h1 em { font-style: italic; color: var(--accent); }
+  header .sub  { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 5px; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .header-bloom {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 3.5rem;
+    color: rgba(192,56,90,0.18);
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { border-color: var(--soft); background: var(--bg2); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-accent {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .btn-accent:hover { background: #A8304E; border-color: #A8304E; }
+
+  .btn-sm { font-size: 10px; padding: 4px 10px; }
+
+  /* ── Main ── */
+  .main { padding: 1.75rem 2.5rem 3rem; }
+
+  /* ── KPIs ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 1.75rem;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--kpi-dot, var(--soft));
+    opacity: 0.09;
+  }
+
+  .kpi.k-total    { --kpi-dot: #C0385A; }
+  .kpi.k-conf     { --kpi-dot: #1B6B44; }
+  .kpi.k-plan     { --kpi-dot: #7A4F00; }
+  .kpi.k-tbc      { --kpi-dot: #C0385A; }
+  .kpi.k-unplaced { --kpi-dot: #6B38A0; }
+
+  .kpi .k-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .kpi .k-value { font-family: var(--font-display); font-size: 2.2rem; font-weight: 500; line-height: 1; color: var(--text); }
+  .kpi.k-conf     .k-value { color: var(--confirmed); }
+  .kpi.k-plan     .k-value { color: var(--planned); }
+  .kpi.k-tbc      .k-value { color: var(--accent); }
+  .kpi.k-unplaced .k-value { color: var(--unplaced); }
+  .kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filters select,
+  .filters input[type=text] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    height: 30px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: auto;
+  }
+
+  .filters select:focus,
+  .filters input[type=text]:focus {
+    border-color: var(--soft);
+    box-shadow: 0 0 0 3px rgba(192,56,90,0.08);
+  }
+
+  .filters input[type=text] { width: 170px; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 16px rgba(192,56,90,0.07);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(to right, #FDF0F5, #FCE8F0);
+  }
+
+  th {
+    text-align: left;
+    padding: 9px 12px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--soft);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #FCF0F5;
+    color: var(--text);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FDF6F9; }
+  tr.row-unplaced td { background: #FDFAFF; }
+  tr.row-unplaced:hover td { background: #F8F2FF; }
+  tr.row-archived td { background: var(--archived-bg); opacity: 0.7; }
+  tr.row-archived:hover td { background: #EEEEE8; opacity: 1; }
+
+  .td-ref   { font-weight: 500; }
+  .td-muted { color: var(--muted); font-size: 12px; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .b-confirmed { background: var(--confirmed-bg); color: var(--confirmed); }
+  .b-planned   { background: var(--planned-bg);   color: var(--planned); }
+  .b-yes       { background: var(--confirmed-bg); color: var(--confirmed); }
+  .b-tbc       { background: var(--tbc-bg);       color: var(--tbc-col); }
+  .b-unplaced  { background: var(--unplaced-bg);  color: var(--unplaced); }
+  .b-joven     { background: var(--joven-bg);     color: var(--joven-col); }
+  .b-blanco    { background: var(--blanco-bg);    color: var(--blanco-col); }
+  .b-archived  { background: #E8E8E0; color: #666; }
+
+  .action-btns { display: flex; gap: 6px; }
+
+  /* ── Archived banner ── */
+  .archive-section-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px;
+    background: #F0EEE8;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Bottom panels ── */
+  .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    box-shadow: 0 2px 16px rgba(192,56,90,0.07);
+  }
+
+  .panel-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .tl-month { margin-bottom: 14px; }
+  .tl-month:last-child { margin-bottom: 0; }
+  .tl-header { display: flex; justify-content: space-between; margin-bottom: 5px; align-items: baseline; }
+  .tl-name   { font-size: 12px; font-weight: 500; }
+  .tl-count  { font-size: 11px; color: var(--muted); }
+  .tl-bar-bg { background: var(--bg2); border-radius: 20px; height: 7px; overflow: hidden; }
+  .tl-bar    { height: 100%; border-radius: 20px; background: linear-gradient(to right, var(--accent), #E87AA0); }
+  .tl-cases  { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  .up-item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #FCF0F5; }
+  .up-item:last-child { border-bottom: none; }
+  .up-date   { font-size: 11px; color: var(--muted); min-width: 58px; padding-top: 2px; }
+  .up-info   { flex: 1; }
+  .up-ref    { font-size: 12px; font-weight: 500; }
+  .up-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .up-none   { font-size: 12px; color: var(--muted); }
+
+  /* ── Modal ── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(45,21,32,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem 2rem;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(192,56,90,0.18);
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-full  { grid-column: 1 / -1; }
+
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+
+  .form-group label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .form-group input,
+  .form-group select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    height: 34px;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: auto;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--soft);
+    box-shadow: 0 0 0 3px rgba(192,56,90,0.08);
+  }
+
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+
+  .form-hint { font-size: 11px; color: var(--muted); margin-top: 1rem; padding: 8px 12px; background: var(--bg2); border-radius: 6px; line-height: 1.6; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--text);
+    color: white;
+    font-size: 12px;
+    padding: 10px 18px;
+    border-radius: 20px;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .main { padding: 1.25rem 1.25rem 3rem; }
+    header { padding: 1.5rem 1.25rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Aldi <em>Order Plan</em></h1>
+    <div class="sub">Guy Anderson Wines &mdash; Open orders</div>
+  </div>
+  <div class="header-right">
+    <button class="btn" onclick="exportCSV()">&#8595; Export CSV</button>
+    <button class="btn btn-accent" onclick="openAddModal()">+ Add order</button>
+    <div class="header-bloom">&#10047;</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="dot" style="background:var(--unplaced)"></span>Not yet sent to winery</span>
+    <span class="legend-item"><span class="dot" style="background:var(--joven-col)"></span>Rioja Joven</span>
+    <span class="legend-item"><span class="dot" style="background:var(--blanco-col)"></span>Rioja Blanco</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="filters">
+      <select id="filterStatus" onchange="render()">
+        <option value="">All statuses</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="PLANNED">Planned</option>
+      </select>
+      <select id="filterProduct" onchange="render()">
+        <option value="">All products</option>
+        <option value="Joven">Rioja Joven</option>
+        <option value="Blanco">Rioja Blanco</option>
+      </select>
+      <select id="filterBooked" onchange="render()">
+        <option value="">All bookings</option>
+        <option value="Yes">Collection booked</option>
+        <option value="TBC">TBC</option>
+        <option value="unplaced">Not sent to winery</option>
+      </select>
+      <input type="text" id="search" placeholder="Search ref, 2XL…" oninput="render()" />
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="showArchived" onchange="render()" style="accent-color:var(--accent)">
+        Show archived
+      </label>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>GAW ref</th>
+          <th>Product</th>
+          <th>2XL ref</th>
+          <th>Cases</th>
+          <th>Pallets</th>
+          <th>Order placed</th>
+          <th>Collection</th>
+          <th>Delivery</th>
+          <th>Status</th>
+          <th>Booked?</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="panel">
+      <div class="panel-title">Deliveries by month</div>
+      <div id="timeline"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Upcoming collections — next 30 days</div>
+      <div id="upcoming"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Add Order Modal -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <div class="modal-title">Add new order</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>GAW ref *</label>
+        <input type="text" id="f-ref" placeholder="e.g. GAWJoven128">
+      </div>
+      <div class="form-group">
+        <label>Product type *</label>
+        <select id="f-type">
+          <option value="Joven">Rioja Joven</option>
+          <option value="Blanco">Rioja Blanco</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>2XL reference</label>
+        <input type="text" id="f-xl" placeholder="e.g. G A117722">
+      </div>
+      <div class="form-group">
+        <label>Status *</label>
+        <select id="f-status">
+          <option value="PLANNED">Planned</option>
+          <option value="CONFIRMED">Confirmed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Order placed date</label>
+        <input type="date" id="f-placed">
+      </div>
+      <div class="form-group">
+        <label>Collection booked?</label>
+        <select id="f-booked">
+          <option value="">— not applicable —</option>
+          <option value="TBC">TBC</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Collection date *</label>
+        <input type="date" id="f-collection">
+      </div>
+      <div class="form-group">
+        <label>Delivery date *</label>
+        <input type="date" id="f-delivery">
+      </div>
+    </div>
+    <div class="form-hint">
+      Cases and pallets default to 3,300 / 33. Leave "Order placed date" blank if the order has not yet been sent to the winery.
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="addOrder()">Add order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+// Start with a copy of ORDERS from orders.js so we can add runtime entries
+let state = ORDERS.map((o, i) => ({ ...o, _id: i }));
+let nextId = state.length;
+
+const today = new Date("2026-05-14");
+
+// ── Helpers ────────────────────────────────────────────────
+function fmt(d) {
+  if (!d) return "—";
+  const [y, m, dd] = d.split("-");
+  return `${dd}/${m}/${y.slice(2)}`;
+}
+
+function productName(type) {
+  return type === "Joven" ? "Baron Amarillo Rioja Joven" : "Baron Amarillo Rioja Blanco";
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+// ── Render ─────────────────────────────────────────────────
+function render() {
+  const fs  = document.getElementById("filterStatus").value;
+  const fp  = document.getElementById("filterProduct").value;
+  const fb  = document.getElementById("filterBooked").value;
+  const q   = document.getElementById("search").value.toLowerCase();
+  const showArch = document.getElementById("showArchived").checked;
+
+  const active   = [];
+  const archived = [];
+
+  state.forEach(o => {
+    if (fs && o.status !== fs) return;
+    if (fp && o.type !== fp) return;
+    if (fb === "Yes"      && o.booked !== "Yes") return;
+    if (fb === "TBC"      && o.booked !== "TBC") return;
+    if (fb === "unplaced" && o.placed) return;
+    if (q && !(o.ref.toLowerCase().includes(q) || (o.xl||"").toLowerCase().includes(q) || o.product.toLowerCase().includes(q))) return;
+    if (o.archived) archived.push(o);
+    else            active.push(o);
+  });
+
+  let rows = active.map(o => buildRow(o, false));
+
+  if (showArch && archived.length) {
+    rows.push(`<tr><td colspan="11" class="archive-section-label">Archived orders (${archived.length})</td></tr>`);
+    archived.forEach(o => rows.push(buildRow(o, true)));
+  }
+
+  document.getElementById("tbody").innerHTML = rows.join("") || `<tr><td colspan="11" style="padding:20px 12px;color:var(--muted);font-style:italic">No orders match the current filters.</td></tr>`;
+
+  updateKPIs(active);
+  buildTimeline();
+  buildUpcoming();
+}
+
+function buildRow(o, isArchived) {
+  const unplaced = !o.placed && !isArchived;
+  const productBadge = o.type === "Joven"
+    ? `<span class="badge b-joven">Joven</span>`
+    : `<span class="badge b-blanco">Blanco</span>`;
+
+  let bookedCell = "—";
+  if (unplaced)              bookedCell = `<span class="badge b-unplaced">Not sent</span>`;
+  else if (o.booked === "Yes") bookedCell = `<span class="badge b-yes">Yes</span>`;
+  else if (o.booked === "TBC") bookedCell = `<span class="badge b-tbc">TBC</span>`;
+
+  const archiveBtn = isArchived
+    ? `<button class="btn btn-sm" onclick="unarchive(${o._id})" title="Restore">&#8635; Restore</button>`
+    : `<button class="btn btn-sm" onclick="archive(${o._id})" title="Archive">Archive</button>`;
+
+  return `<tr class="${isArchived ? 'row-archived' : unplaced ? 'row-unplaced' : ''}">
+    <td class="td-ref">${o.ref}</td>
+    <td>${productBadge}</td>
+    <td class="td-muted">${o.xl || "—"}</td>
+    <td>3,300</td>
+    <td>33</td>
+    <td class="${!o.placed ? 'td-muted' : ''}">${o.placed ? fmt(o.placed) : '<em style="font-size:11px;color:var(--muted)">not sent</em>'}</td>
+    <td>${fmt(o.collection)}</td>
+    <td>${fmt(o.delivery)}</td>
+    <td><span class="badge b-${o.status.toLowerCase()}">${o.status}${isArchived ? ' <span class="badge b-archived" style="margin-left:4px">archived</span>' : ''}</span></td>
+    <td>${bookedCell}</td>
+    <td><div class="action-btns">${archiveBtn}</div></td>
+  </tr>`;
+}
+
+function updateKPIs(active) {
+  const total    = active.length;
+  const conf     = active.filter(o => o.status === "CONFIRMED").length;
+  const plan     = active.filter(o => o.status === "PLANNED").length;
+  const tbc      = active.filter(o => o.booked === "TBC").length;
+  const unplaced = active.filter(o => !o.placed).length;
+
+  document.getElementById("kpiGrid").innerHTML = `
+    <div class="kpi k-total">
+      <div class="k-label">Open orders</div>
+      <div class="k-value">${total}</div>
+      <div class="k-sub">${(total * 3300).toLocaleString()} cases</div>
+    </div>
+    <div class="kpi k-conf">
+      <div class="k-label">Confirmed</div>
+      <div class="k-value">${conf}</div>
+      <div class="k-sub">${(conf * 3300).toLocaleString()} cases</div>
+    </div>
+    <div class="kpi k-plan">
+      <div class="k-label">Planned</div>
+      <div class="k-value">${plan}</div>
+      <div class="k-sub">${(plan * 3300).toLocaleString()} cases</div>
+    </div>
+    <div class="kpi k-tbc">
+      <div class="k-label">Collection TBC</div>
+      <div class="k-value">${tbc}</div>
+      <div class="k-sub">need booking</div>
+    </div>
+    <div class="kpi k-unplaced">
+      <div class="k-label">Not sent to winery</div>
+      <div class="k-value">${unplaced}</div>
+      <div class="k-sub">need placing</div>
+    </div>`;
+}
+
+function buildTimeline() {
+  const months = [
+    {key:"2026-05", label:"May 2026"},
+    {key:"2026-06", label:"Jun 2026"},
+    {key:"2026-07", label:"Jul 2026"}
+  ];
+  const counts = {}, caseMap = {};
+  months.forEach(m => { counts[m.key] = 0; caseMap[m.key] = 0; });
+  state.filter(o => !o.archived).forEach(o => {
+    const mk = o.delivery.slice(0,7);
+    if (counts[mk] !== undefined) { counts[mk]++; caseMap[mk] += 3300; }
+  });
+  const max = Math.max(...Object.values(counts), 1);
+  document.getElementById("timeline").innerHTML = months.map(m => `
+    <div class="tl-month">
+      <div class="tl-header">
+        <span class="tl-name">${m.label}</span>
+        <span class="tl-count">${counts[m.key]} order${counts[m.key] !== 1 ? "s" : ""}</span>
+      </div>
+      <div class="tl-bar-bg">
+        <div class="tl-bar" style="width:${Math.round(counts[m.key]/max*100)}%"></div>
+      </div>
+      <div class="tl-cases">${caseMap[m.key].toLocaleString()} cases</div>
+    </div>`).join("");
+}
+
+function buildUpcoming() {
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() + 30);
+  const up = state.filter(o => {
+    if (o.archived || !o.collection) return false;
+    const d = new Date(o.collection);
+    return d >= today && d <= cutoff;
+  });
+  if (!up.length) {
+    document.getElementById("upcoming").innerHTML = `<div class="up-none">No collections in the next 30 days.</div>`;
+    return;
+  }
+  const grouped = {};
+  up.forEach(o => { if (!grouped[o.collection]) grouped[o.collection] = []; grouped[o.collection].push(o); });
+  document.getElementById("upcoming").innerHTML = Object.entries(grouped)
+    .sort(([a],[b]) => a.localeCompare(b))
+    .map(([date, items]) => {
+      const types = [...new Set(items.map(o => o.type))].join(" & ");
+      return `<div class="up-item">
+        <div class="up-date">${fmt(date)}</div>
+        <div class="up-info">
+          <div class="up-ref">${items.length} collection${items.length > 1 ? "s" : ""} — ${types}</div>
+          <div class="up-detail">${(items.length * 3300).toLocaleString()} cases · ${items.map(o => o.ref).join(", ")}</div>
+        </div>
+      </div>`;
+    }).join("");
+}
+
+// ── Archive / Restore ─────────────────────────────────────
+function archive(id) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.archived = true; render(); showToast(`${o.ref} archived`); }
+}
+
+function unarchive(id) {
+  const o = state.find(o => o._id === id);
+  if (o) { o.archived = false; render(); showToast(`${o.ref} restored`); }
+}
+
+// ── Add Order Modal ───────────────────────────────────────
+function openAddModal() {
+  document.getElementById("addModal").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("addModal").classList.remove("open");
+  clearForm();
+}
+
+function clearForm() {
+  ["f-ref","f-xl","f-placed","f-collection","f-delivery"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("f-type").value   = "Joven";
+  document.getElementById("f-status").value = "PLANNED";
+  document.getElementById("f-booked").value = "";
+}
+
+function addOrder() {
+  const ref        = document.getElementById("f-ref").value.trim();
+  const type       = document.getElementById("f-type").value;
+  const xl         = document.getElementById("f-xl").value.trim();
+  const status     = document.getElementById("f-status").value;
+  const placed     = document.getElementById("f-placed").value;
+  const booked     = document.getElementById("f-booked").value;
+  const collection = document.getElementById("f-collection").value;
+  const delivery   = document.getElementById("f-delivery").value;
+
+  if (!ref || !collection || !delivery) {
+    showToast("Please fill in GAW ref, collection and delivery dates.");
+    return;
+  }
+
+  const newOrder = {
+    _id: nextId++,
+    ref,
+    type,
+    product: productName(type),
+    xl,
+    placed,
+    collection,
+    delivery,
+    status,
+    booked,
+    archived: false,
+  };
+
+  state.push(newOrder);
+  closeModal();
+  render();
+  showToast(`${ref} added ✓`);
+}
+
+// Close modal on background click
+document.getElementById("addModal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── Export CSV ────────────────────────────────────────────
+function exportCSV() {
+  const headers = ["GAW Ref","Type","Product","2XL Ref","Cases","Pallets","Order Placed","Collection","Delivery","Status","Collection Booked","Archived"];
+  const rows = state.map(o => [
+    o.ref,
+    o.type,
+    o.product,
+    o.xl,
+    3300,
+    33,
+    o.placed,
+    o.collection,
+    o.delivery,
+    o.status,
+    o.booked,
+    o.archived ? "Yes" : "No"
+  ].map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","));
+
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `GAW_Aldi_Orders_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("CSV exported ✓");
+}
+
+// ── Init ──────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
