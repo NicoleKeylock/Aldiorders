@@ -162,6 +162,12 @@
     font-weight: 500;
   }
 
+  .toggle-pill button.active-no {
+    background: #FEF0E0;
+    color: #8A4500;
+    font-weight: 500;
+  }
+
   .main { padding: 1.75rem 2.5rem 3rem; }
 
   .kpi-grid {
@@ -488,6 +494,7 @@
         <option value="">All bookings</option>
         <option value="Yes">Collection booked</option>
         <option value="TBC">TBC</option>
+        <option value="No">No</option>
         <option value="unplaced">Not sent to winery</option>
       </select>
       <input type="text" id="search" placeholder="Search ref, 2XL…" oninput="render()" />
@@ -569,6 +576,7 @@
           <option value="">— not set —</option>
           <option value="TBC">TBC</option>
           <option value="Yes">Yes</option>
+          <option value="No">No</option>
         </select>
       </div>
       <div class="form-group">
@@ -590,7 +598,65 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Edit Order Modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Edit order</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>GAW ref *</label>
+        <input type="text" id="e-ref" placeholder="e.g. GAWJoven128">
+      </div>
+      <div class="form-group">
+        <label>Product type *</label>
+        <select id="e-type">
+          <option value="Joven">Rioja Joven</option>
+          <option value="Blanco">Rioja Blanco</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>2XL reference</label>
+        <input type="text" id="e-xl" placeholder="e.g. G A117722">
+      </div>
+      <div class="form-group">
+        <label>Status *</label>
+        <select id="e-status">
+          <option value="PLANNED">Planned</option>
+          <option value="CONFIRMED">Confirmed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Order placed date</label>
+        <input type="date" id="e-placed">
+      </div>
+      <div class="form-group">
+        <label>Collection booked?</label>
+        <select id="e-booked">
+          <option value="">— not set —</option>
+          <option value="TBC">TBC</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Collection date *</label>
+        <input type="date" id="e-collection">
+      </div>
+      <div class="form-group">
+        <label>Delivery date *</label>
+        <input type="date" id="e-delivery">
+      </div>
+      <div class="form-group form-full">
+        <label>Cases ordered</label>
+        <input type="number" id="e-cases" placeholder="3300">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
 
 <script>
 let state = ORDERS.map((o, i) => ({ ...o, _id: i }));
@@ -671,12 +737,13 @@ function buildRow(o, isArchived) {
   if (unplaced) {
     bookedToggle = `<span class="badge b-unplaced">Not sent</span>`;
   } else if (isArchived) {
-    const label = o.booked === "Yes" ? "Yes" : o.booked === "TBC" ? "TBC" : "—";
+    const label = o.booked === "Yes" ? "Yes" : o.booked === "TBC" ? "TBC" : o.booked === "No" ? "No" : "—";
     bookedToggle = `<span style="font-size:11px;color:var(--muted)">${label}</span>`;
   } else {
     bookedToggle = `<div class="toggle-pill">
       <button class="${o.booked === 'TBC' ? 'active-tbc' : ''}" onclick="setBooked(${o._id},'TBC')">TBC</button>
       <button class="${o.booked === 'Yes' ? 'active-yes' : ''}" onclick="setBooked(${o._id},'Yes')">Yes</button>
+      <button class="${o.booked === 'No' ? 'active-no' : ''}" onclick="setBooked(${o._id},'No')">No</button>
     </div>`;
   }
 
@@ -684,18 +751,20 @@ function buildRow(o, isArchived) {
     ? `<button class="btn btn-sm" onclick="unarchive(${o._id})">&#8635; Restore</button>`
     : `<button class="btn btn-sm" onclick="archive(${o._id})">Archive</button>`;
 
+  const editBtn = `<button class="btn btn-sm" onclick="openEditModal(${o._id})" style="border-color:var(--soft);color:var(--accent)">&#9998; Edit</button>`;
+
   return `<tr class="${isArchived ? 'row-archived' : unplaced ? 'row-unplaced' : ''}">
     <td class="td-ref">${o.ref}</td>
     <td>${productBadge}</td>
     <td class="td-muted">${o.xl || "—"}</td>
-    <td>3,300</td>
-    <td>33</td>
+    <td>${(o.cases||3300).toLocaleString()}</td>
+    <td>${Math.round((o.cases||3300)/100)}</td>
     <td class="${!o.placed ? 'td-muted' : ''}">${o.placed ? fmt(o.placed) : '<em style="font-size:11px;color:var(--muted)">not sent</em>'}</td>
     <td>${fmt(o.collection)}</td>
     <td>${fmt(o.delivery)}</td>
     <td>${statusToggle}</td>
     <td>${bookedToggle}</td>
-    <td>${archiveBtn}</td>
+    <td><div style="display:flex;gap:5px">${editBtn}${archiveBtn}</div></td>
   </tr>`;
 }
 
@@ -862,6 +931,65 @@ function addOrder() {
 
 document.getElementById("addModal").addEventListener("click", function(e) {
   if (e.target === this) closeModal();
+});
+
+// ── Edit Order Modal ──────────────────────────────────────
+let editingId = null;
+
+function openEditModal(id) {
+  const o = state.find(o => o._id === id);
+  if (!o) return;
+  editingId = id;
+
+  document.getElementById("e-ref").value        = o.ref;
+  document.getElementById("e-type").value       = o.type;
+  document.getElementById("e-xl").value         = o.xl || "";
+  document.getElementById("e-status").value     = o.status;
+  document.getElementById("e-placed").value     = o.placed || "";
+  document.getElementById("e-booked").value     = o.booked || "";
+  document.getElementById("e-collection").value = o.collection || "";
+  document.getElementById("e-delivery").value   = o.delivery || "";
+  document.getElementById("e-cases").value      = o.cases || 3300;
+
+  document.getElementById("editModal").classList.add("open");
+}
+
+function closeEditModal() {
+  editingId = null;
+  document.getElementById("editModal").classList.remove("open");
+}
+
+function saveEdit() {
+  const o = state.find(o => o._id === editingId);
+  if (!o) return;
+
+  const ref        = document.getElementById("e-ref").value.trim();
+  const collection = document.getElementById("e-collection").value;
+  const delivery   = document.getElementById("e-delivery").value;
+
+  if (!ref || !collection || !delivery) {
+    showToast("Please fill in GAW ref, collection and delivery dates.");
+    return;
+  }
+
+  o.ref        = ref;
+  o.type       = document.getElementById("e-type").value;
+  o.product    = productName(o.type);
+  o.xl         = document.getElementById("e-xl").value.trim();
+  o.status     = document.getElementById("e-status").value;
+  o.placed     = document.getElementById("e-placed").value;
+  o.booked     = document.getElementById("e-booked").value;
+  o.collection = collection;
+  o.delivery   = delivery;
+  o.cases      = parseInt(document.getElementById("e-cases").value) || 3300;
+
+  closeEditModal();
+  render();
+  showToast(`${o.ref} updated ✓`);
+}
+
+document.getElementById("editModal").addEventListener("click", function(e) {
+  if (e.target === this) closeEditModal();
 });
 
 // ── Export CSV ────────────────────────────────────────────
